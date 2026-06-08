@@ -21,7 +21,8 @@ WHERE quantity < 0
 ORDER BY ticket_number;
 
 
--- Joe's code with one window function & Feranmi's edit for removing duplicates
+-- Joe's code with one CTE named rank_table
+-- Feranmi updated the GROUP BY clause on line 46 to 'YYYY-MM' date string format to match the aggregation in the PARTITION BY clause 
 -- Q1: Top 3 Most Sold Items by Year-Month (2 points)
 -- Write a query that reports the top 3 items with the highest total quantity sold for each year-month in the dataset.
 -- Your output should include:
