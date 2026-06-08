@@ -38,6 +38,7 @@ WITH rank_table AS (
         SUM(quantity) AS total_quantity_sold, -- Total quantity sold
         SUM(quantity * unit_price) AS total_revenue, -- Total revenue for each item
         COUNT (DISTINCT ticket_number) AS num_unique_tickets, -- Number of unique tickets containing the item
+        -- RANK() OVER ( -- Use this alternative to get strictly 3 values per month
         DENSE_RANK() OVER (
             PARTITION BY TO_CHAR(sale_date, 'YYYY-MM')
             ORDER BY SUM(quantity) DESC) AS rank
