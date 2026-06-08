@@ -1,4 +1,3 @@
--- Katya's intro addition
 -- Introduction
 -- Reading the dataset from mmai_db.public
 SELECT *
@@ -21,8 +20,6 @@ WHERE quantity < 0
 ORDER BY ticket_number;
 
 
--- Joe's code with one CTE named rank_table
--- Feranmi updated the GROUP BY clause on line 46 to 'YYYY-MM' date string format to match the aggregation in the PARTITION BY clause 
 -- Q1: Top 3 Most Sold Items by Year-Month (2 points)
 -- Write a query that reports the top 3 items with the highest total quantity sold for each year-month in the dataset.
 -- Your output should include:
@@ -40,7 +37,7 @@ WITH rank_table AS (
         SUM(quantity * unit_price) AS total_revenue, -- Total revenue for each item
         COUNT (DISTINCT ticket_number) AS num_unique_tickets, -- Number of unique tickets containing the item
         -- RANK() OVER ( -- Use this alternative to get strictly 3 values per month
-        DENSE_RANK() OVER (
+        DENSE_RANK() OVER ( -- Use this alternative to not discriminate in case of a tie
             PARTITION BY TO_CHAR(sale_date, 'YYYY-MM')
             ORDER BY SUM(quantity) DESC) AS rank
     FROM assignment01.bakery_sales
@@ -56,12 +53,8 @@ WHERE rank <= 3
 ORDER BY year_month DESC,
          total_quantity_sold DESC;
 
----- TO CHAR CAN BE USED INSTEAD OF DATE_TRUNC
 
 
-
--- Fuyao's code with better performance using DATE filtering 
--- Orginal method was to convert sale_date to 'YYYY-MM' date string format and filter on Str type
 -- Q2: Tickets with 5 or More Unique Articles (1 point)
 -- Identify all sales tickets in December 2021 that include 5 or more unique articles. Your output should include:
 -- Ticket ID
@@ -73,7 +66,7 @@ SELECT -- Select each ticket and count how many distinct articles were purchased
     COUNT(DISTINCT article) AS number_of_unique_items
 FROM assignment01.bakery_sales
 -- Filter rows to only include sales from December 2021.
--- WHERE TO_CHAR(sale_date, 'YYYY-MM') = '2021-12'
+-- WHERE TO_CHAR(sale_date, 'YYYY-MM') = '2021-12'-- Alternative option for filtering
 WHERE sale_date >= DATE '2021-12-01'
   AND sale_date < DATE '2022-01-01'
 -- Group rows by ticket so the count is calculated per ticket.
@@ -83,7 +76,6 @@ HAVING COUNT(DISTINCT article) >= 5
 ORDER BY number_of_unique_items DESC;
 
 
--- Joe's code, with Fuyao's edits to highlight top 1 and attempt to break ties for the Bonus
 -- Q3: Most Popular Hour for Traditional Baguette Sales (2 points)
 -- Determine the hour of the day when the Traditional Baguette was most frequently purchased during July (across all years).
 -- Your query should:
@@ -97,11 +89,11 @@ SELECT DATE_PART('hour', sale_time) AS hour,
 FROM assignment01.bakery_sales
 WHERE article = 'TRADITIONAL BAGUETTE'
   AND DATE_PART('month', sale_date) = 7
-GROUP BY DATE_PART('hour', sale_time)
-ORDER BY total_quantity_sold DESC, hour 
-LIMIT 1;
+GROUP BY DATE_PART('hour', sale_time) -- Aggregate sales by hour of day.
+ORDER BY total_quantity_sold DESC, hour -- Show the hour with the highest total quantity sold first.
+LIMIT 1; -- Return only the top-ranked hour.
 
--- Joe's code with updated inclusion of 20h+ records in the previous timeslot + Katya's data inspection step
+
 -- Q4: Busiest Two-Hour Window for Sales (3 points)
 -- Identify the two-hour window (e.g., 14:00–16:00) in which the highest total quantity of items were sold, across all dates in the dataset.
 -- Your output should include:
@@ -119,7 +111,14 @@ ORDER BY sale_time DESC;
 -- The store opens at 7AM (the first sale is at 07:01) and it closes at 8PM but the last sale is at 20:01.
 -- 20:00 and 20:01 times' records will be included with the preceding timeslot.
 
+-- Analyze transaction time and frequencies to estimate the bakery's shop hours
+SELECT DISTINCT sale_time AS shop_time,
+    COUNT(sale_time) AS count
+FROM assignment01.bakery_sales
+GROUP BY sale_time
+ORDER BY sale_time ASC;
 
+-- Start assignment
 SELECT DISTINCT sale_time AS shop_time,
                 COUNT(sale_time) AS count
 FROM assignment01.bakery_sales
@@ -143,23 +142,24 @@ WITH hourly_sales AS (
         END
         )
 )
+
 SELECT t1.sale_hour AS time_window_start,
        t1.sale_hour + 2 AS time_window_end,
     SUM(t2.total_quantity) AS total_quantity_sold,
     SUM(t2.total_revenue) AS total_revenue
-FROM hourly_sales t1
-JOIN hourly_sales t2
+FROM hourly_sales AS t1 
+-- Create two hour windows using SELF-JOIN twice to create all 2-hour windows (starting with odd or even times).
+-- table 1 and table 2 contain the same information, joining them will allow to sum revenues for all 2-hour windows.
+JOIN hourly_sales AS t2
     ON t2.sale_hour = t1.sale_hour
     OR t2.sale_hour = t1.sale_hour + 1
 GROUP BY t1.sale_hour
 ORDER BY total_quantity_sold DESC
-LIMIT 1;
+LIMIT 1; -- Show only business 2-hour window
 
 
--- Fuyao's code with a commented addition by Katya in 2) to isolate number of COUPE duplicates
 -- Q5: Data Quality Checks (2 points)
 -- Write queries to assess the quality of the dataset. Consider checks for:
---
 -- Missing values (e.g., NULLs in important columns)
 -- Duplicate records
 -- Outliers (e.g., negative quantities or unusually high values)
