@@ -21,7 +21,7 @@ WHERE quantity < 0
 ORDER BY ticket_number;
 
 
--- Joe's code with one window function
+-- Joe's code with one window function & Feranmi's edit for removing duplicates
 -- Q1: Top 3 Most Sold Items by Year-Month (2 points)
 -- Write a query that reports the top 3 items with the highest total quantity sold for each year-month in the dataset.
 -- Your output should include:
@@ -42,7 +42,7 @@ WITH rank_table AS (
             PARTITION BY TO_CHAR(sale_date, 'YYYY-MM')
             ORDER BY SUM(quantity) DESC) AS rank
     FROM assignment01.bakery_sales
-    GROUP BY sale_date, article
+    GROUP BY TO_CHAR(sale_date, 'YYYY-MM'), article
 )
 SELECT year_month,
        item_name,
@@ -53,6 +53,9 @@ FROM rank_table
 WHERE rank <= 3
 ORDER BY year_month DESC,
          total_quantity_sold DESC;
+
+---- TO CHAR CAN BE USED INSTEAD OF DATE_TRUNC
+
 
 
 -- Fuyao's code with better performance
