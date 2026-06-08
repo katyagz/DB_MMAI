@@ -90,7 +90,7 @@ FROM assignment01.bakery_sales
 WHERE article = 'TRADITIONAL BAGUETTE'
   AND DATE_PART('month', sale_date) = 7
 GROUP BY DATE_PART('hour', sale_time) -- Aggregate sales by hour of day.
-ORDER BY total_quantity_sold DESC, hour -- Show the hour with the highest total quantity sold first.
+ORDER BY total_quantity_sold DESC, hour -- Show the hour with the highest total quantity sold first. (Bonus: earliest first in case of tie)
 LIMIT 1; -- Return only the top-ranked hour.
 
 
