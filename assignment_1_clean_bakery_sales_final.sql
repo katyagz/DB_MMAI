@@ -60,7 +60,8 @@ ORDER BY year_month DESC,
 
 
 
--- Fuyao's code with better performance
+-- Fuyao's code with better performance using DATE filtering 
+-- Orginal method was to convert sale_date to 'YYYY-MM' date string format and filter on Str type
 -- Q2: Tickets with 5 or More Unique Articles (1 point)
 -- Identify all sales tickets in December 2021 that include 5 or more unique articles. Your output should include:
 -- Ticket ID
@@ -82,7 +83,7 @@ HAVING COUNT(DISTINCT article) >= 5
 ORDER BY number_of_unique_items DESC;
 
 
--- Joe's code, with an added LIMIT 1
+-- Joe's code, with Fuyao's edits to highlight top 1 and attempt to break ties for the Bonus
 -- Q3: Most Popular Hour for Traditional Baguette Sales (2 points)
 -- Determine the hour of the day when the Traditional Baguette was most frequently purchased during July (across all years).
 -- Your query should:
@@ -97,7 +98,7 @@ FROM assignment01.bakery_sales
 WHERE article = 'TRADITIONAL BAGUETTE'
   AND DATE_PART('month', sale_date) = 7
 GROUP BY DATE_PART('hour', sale_time)
-ORDER BY total_quantity_sold DESC
+ORDER BY total_quantity_sold DESC, hour 
 LIMIT 1;
 
 -- Joe's code with updated inclusion of 20h+ records in the previous timeslot + Katya's data inspection step
